@@ -1,3 +1,3 @@
 #/usr/bin/bash -l
-sudo /etc/init.d/firewall stop
-thin --port 3000 --daemonize --log ./cgi_server.log --pid ./cgi_server.pid start
+#sudo /etc/init.d/firewall stop
+thin --port 50000 --daemonize --log ./lias_resolver.log --pid ./lias_resolver.pid start
