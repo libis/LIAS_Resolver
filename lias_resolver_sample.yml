@@ -1,0 +1,20 @@
+---
+environment: development
+address: 127.0.0.1
+port: 50000
+timeout: 30
+log: ./lias_resolver.log
+pid: ./lias_resolver.pid
+max_conns: 1024
+max_persistent_conns: 512
+require: []
+wait: 30
+daemonize: false
+user: xxx
+group: xxx
+db_user: xxx
+db_pass: xxx
+db_host: xxx
+this_url: xxx
+view_url: xxx
+strm_url: xxx

@@ -1,0 +1,3 @@
+#/usr/bin/bash -l
+sudo /etc/init.d/firewall stop
+thin --port 3000 --daemonize --log ./cgi_server.log --pid ./cgi_server.pid start
