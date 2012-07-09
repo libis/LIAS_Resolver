@@ -1,7 +1,7 @@
 # coding: utf-8
 require 'oci8'
 
-module LiasResolverHelper < Sinatra::Base
+module LiasResolverHelper
 
   helpers do
 
