@@ -21,7 +21,7 @@ class DigitalEntityExplorer < SoapClient
 
     root << (x_query = create_node('x_query', :attributes => { 'type' => 'hql', 'name' => 'SET1' }))
     x_query << (x_select = create_node('x_select', :attributes => { 'from_answer' => from.to_s, 'to_answer' => (from + max - 1).to_s }))
-    x_select << create_text_node('element', 'control')
+    x_select << create_text_node('element', 'all')
 
     x_query << create_text_node('hql', %{select hc from HDeControl hc where #{create_where(tag, term)}#{create_filter(filter)} and (usagetype = 'ARCHIVE' or ((entitytype = 'COMPLEX' or entitytype = 'METS') and usagetype = 'VIEW'))})
 

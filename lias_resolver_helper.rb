@@ -1,9 +1,13 @@
 # coding: utf-8
 require 'oci8'
 
-module LiasResolverHelper
+class LiasResolver < Sinatra::Base
 
   helpers do
+
+    register Sinatra::ConfigFile
+
+    config_file 'lias_resolver.yml'
 
     def oracle_connect(connection)
       while connection.nil? or connection.ping == false
@@ -201,12 +205,42 @@ SQL
 
       ensure
         cursor.close
-        connection.logoff
+#        connection.logoff
 
       end
 
       { count: total, pids: pid_list }
 
+    end
+
+    def collect_dc_info(pid, connection)
+
+      sql <<-SQL
+SELECT t1.pid pid, t1.mid mid, t2.value data
+  FROM hdepidmid t1
+  JOIN hdemetadata t2 on t1.hdemetadata = t2.id
+  where pid = :pid
+    and t2.mdid = 10
+SQL
+
+      result = []
+
+      begin
+        connection = oracle_connect(connection)
+        cursor = connection.parse sql
+        cursor.bind_param(':pid', pid.to_s)
+
+        cursor.exec
+        while(h = cursor.fetch_hash)
+          result << h
+        end
+
+      ensure
+        cursor.close if cursor
+      end
+
+      result
+      
     end
 
   end

@@ -7,11 +7,13 @@ require 'builder'
 require 'cgi'
 require 'set'
 require './lib/digital_entity_explorer'
+require './lib/digital_entity_manager'
+require './lib/meta_data_manager'
+require './lib/xml_document'
 
 require './lias_resolver_helper'
 
 class LiasResolver < Sinatra::Base
-  include LiasResolverHelper
 
   register Sinatra::ConfigFile
 
@@ -28,7 +30,7 @@ class LiasResolver < Sinatra::Base
     cache_control :public, :max_age => 36000
   end
 
-  get '/lias/find_pid' do
+  get '/find_pid' do
     term = params['search']
     max = params['max_results']
     from = params['from']
@@ -44,14 +46,14 @@ class LiasResolver < Sinatra::Base
       a = f.split(':')
       filter[a[0]] = a[1]
     end if filter_text
-#puts "Filter: #{filter}"
 
     result = digital_entity_explorer.search('label', term, from, max, filter)
+puts result[:result]
 
     pid_list = result[:pids]
     totals = result[:result].xpath('//@total_num_results')
     total = 0
-    total = totals[0].content.to_i if totals
+    total = totals.first.content.to_i if totals
 
     _next = from + pid_list.length
     _last = _next - 1
@@ -79,9 +81,9 @@ class LiasResolver < Sinatra::Base
 
           t_url = "#{THIS_URL}/get_pid?redirect&usagetype=THUMBNAIL&pid=#{p.to_s}&custom_att_3=stream"
           v_url = "#{THIS_URL}/get_pid?redirect&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
-          de = result[:result].xpath('//xb:digital_entity[pid=$pid]', nil, { :pid => p.to_s })[0]
-          label = de.xpath('//control/label')[0].content
-          etype = de.xpath('//control/entity_type')[0]
+          de = result[:result].xpath('//xb:digital_entity[pid=$pid]', nil, { :pid => p.to_s }).first
+          label = de.xpath('//control/label').first.content
+          etype = de.xpath('//control/entity_type').first
           etype = etype.content if etype
           c_url = "#{THIS_URL}/get_children?pid=#{p.to_s}"
 
@@ -93,8 +95,20 @@ class LiasResolver < Sinatra::Base
           }
 
           attributes['children'] = "#{CGI::escapeHTML(c_url)}" if ['COMPLEX', 'METS'].include?(etype)
-      
-          xml.item(attributes)
+
+          xml.item(attributes) do
+
+            de.xpath('//mds/md[name = \'descriptive\']').each { |md|
+              mid = md.xpath('mid').first.content
+              attributes = {
+                'mid' => mid,
+                'type' => md.xpath('type').first.content,
+                'url' => THIS_URL + '/get_metadata?mid=' + mid
+              }
+              xml.metadata(attributes)
+            }
+
+          end #xml.item
 
         end # pid_list
 
@@ -104,7 +118,7 @@ class LiasResolver < Sinatra::Base
 
   end # get find_pid
 
-  get '/lias/get_children' do
+  get '/get_children' do
     pid = params['pid']
 
     halt 400, 'Missing \'pid\' parameter' if pid.nil? or pid.empty?
@@ -113,9 +127,9 @@ class LiasResolver < Sinatra::Base
     from = params['from']
 
     max = max.to_i | 20
-    from = from.to_i
+    from = from.to_i | 0
 
-    result = collect_child_pids pid, from, max
+    result = collect_child_pids pid, from, max, connection
 
     total = result[:count]
     pid_list = result[:pids]
@@ -137,8 +151,11 @@ class LiasResolver < Sinatra::Base
         'last'   => "#{_last.to_s}"
       }
 
-      attributes['next'] = "#{_next.to_s}" if _more > 0
-      attributes['more'] = "#{_more.to_s}" if _more > 0
+      if _more > 0
+        attributes['next'] = "#{_next.to_s}"
+        attributes['more'] = "#{_more.to_s}"
+        attributes['next_url'] = "#{THIS_URL}/get_children?pid=#{pid}&from=#{_next.to_s}&max_results=#{max}"
+      end # if _more > 0
 
       xml.result(attributes) do
 
@@ -166,9 +183,9 @@ class LiasResolver < Sinatra::Base
     end # Builder
     
 
-  end
+  end # get_children
 
-  get '/lias/get_pid' do
+  get '/get_pid' do
 
     pid = params['pid']
     
@@ -180,8 +197,8 @@ class LiasResolver < Sinatra::Base
         viewer = VIEWER
       else
         viewer = VIEWER_X
-      end
-    end
+      end # if params.has_key?
+    end # if viewer.nil?
 
     usagetype = params['usagetype']
     if usagetype.empty?
@@ -195,7 +212,7 @@ class LiasResolver < Sinatra::Base
       lookup_type = :array
     else
       lookup_type = :error
-    end
+    end # if usage_type
 
     sql = make_sql lookup_type
     pid_list = run_query sql, pid, usagetype, connection
@@ -212,7 +229,7 @@ class LiasResolver < Sinatra::Base
       viewer += "?"
       extra_params.each do |k,v|
         viewer += "#{k.to_s}=#{v.to_s}&"
-      end
+      end # each extra_params
       viewer += "custom_att_2=simple_viewer"
       redirect viewer
 
@@ -223,13 +240,66 @@ class LiasResolver < Sinatra::Base
         xml.result('source_pid' => pid,'target_usagetype'  => usagetype.join(',')) do
           pid_list.each do |p|
             xml.target_pid p.to_s
-          end
-        end
-      end
+          end # pid_list.each
+        end # xml.result
+      end # builder
 
+    end # unless
+
+  end # get_pid
+
+  get '/get_mid' do
+
+    pid = params['pid']
+
+    halt 400, 'Missing \'pid\' parameter' if pid.nil? or pid.empty?
+
+    result = DigitalEntityManager.instance.retrieve_object pid
+
+    headers 'Content-type' => 'text/xml', 'Charset' => 'utf-8'
+    builder { |xml|
+      xml.instruct! :xml, version: '1.0', encoding: 'utf-8'
+      xml.result(pid: pid) {
+        result[:result].xpath('//mds/md[name=\'descriptive\']').each { |md|
+          xml.metadata(mid: md.xpath('mid').first.content, type: md.xpath('type').first.content)
+        } # each md
+      } # xml.result
+    } # builder
+
+  end # get_mid
+
+  get '/get_metadata' do
+
+    pid = params['pid']
+    mid = params['mid']
+
+    result = nil
+    attributes = {}
+
+    if mid and !mid.nil?
+      result = MetaDataManager.instance.retrieve mid
+      attributes[:mid] = mid
+    elsif pid and !pid.nil?
+      result = DigitalEntityManager.instance.retrieve_object pid
+      attributes[:pid] = pid
+    else
+      halt 400, 'Missing \'pid\' or \'mid\' parameter'
     end
 
-  end
+    headers 'Content-type' => 'text/xml', 'Charset' => 'utf-8'
+    builder { |xml|
+      xml.instruct! :xml, version: '1.0', encoding: 'utf-8'
+      xml.result(attributes) {
+        result[:result].xpath('//mds/md[name=\'descriptive\']').each { |md|
+          xml.metadata(mid: md.xpath('mid').first.content, type: md.xpath('type').first.content) {
+            doc = XmlDocument.parse(md.xpath('value').first.content)
+            xml << doc.root.to_xml + "\n"
+          } # xml.metadata
+        } # each md
+      } # xml.result
+    } # builder
+  end # get_metadata
+
 
   run! if app_file == $0
 
