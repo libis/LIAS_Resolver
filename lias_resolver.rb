@@ -22,10 +22,14 @@ class LiasResolver < Sinatra::Base
   digital_entity_explorer = DigitalEntityExplorer.new
   connection = nil
 
-  before do
-    cache_control :public, :max_age => 36000
+  def initialize
     set :root, File.dirname(__FILE__)
     set :static, true
+    set :public_folder, Proc.new { File.join(root, "public") }
+  end
+
+  before do
+    cache_control :public, :max_age => 36000
   end
 
   get '/find_pid' do
