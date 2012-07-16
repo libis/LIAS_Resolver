@@ -22,11 +22,6 @@ class LiasResolver < Sinatra::Base
   digital_entity_explorer = DigitalEntityExplorer.new
   connection = nil
 
-  def initialize
-    set :root, File.dirname(__FILE__)
-    set :static, true
-  end
-
   before do
     cache_control :public, :max_age => 36000
   end
