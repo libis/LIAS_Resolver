@@ -15,6 +15,8 @@ set :deploy_to, "/opt/libis/LIAS_Resolver"
 set :user, "exlibris"
 set :use_sudo, false
 
+set :keep_releases, 2
+
 server "resolver.lias.be", :app, :web, :db, :primary => true
 
 # if you want to clean up old releases on each deploy uncomment this:
