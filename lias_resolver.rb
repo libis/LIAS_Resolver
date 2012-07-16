@@ -24,6 +24,8 @@ class LiasResolver < Sinatra::Base
 
   before do
     cache_control :public, :max_age => 36000
+    set :root, File.dirname(__FILE__)
+    set :static, true
   end
 
   get '/find_pid' do
