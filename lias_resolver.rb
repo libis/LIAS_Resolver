@@ -19,10 +19,6 @@ class LiasResolver < Sinatra::Base
 
   config_file 'lias_resolver.yml'
 
-  THIS_URL = settings.this_url
-  VIEWER   = settings.view_url
-  VIEWER_X = settings.strm_url
-
   digital_entity_explorer = DigitalEntityExplorer.new
   connection = nil
 
@@ -79,13 +75,13 @@ puts result[:result]
 
         pid_list.each do |p|
 
-          t_url = "#{THIS_URL}/get_pid?redirect&usagetype=THUMBNAIL&pid=#{p.to_s}&custom_att_3=stream"
-          v_url = "#{THIS_URL}/get_pid?redirect&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
+          t_url = "#{settings.this_url}/get_pid?redirect&usagetype=THUMBNAIL&pid=#{p.to_s}&custom_att_3=stream"
+          v_url = "#{settings.this_url}/get_pid?redirect&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
           de = result[:result].xpath('//xb:digital_entity[pid=$pid]', nil, { :pid => p.to_s }).first
           label = de.xpath('//control/label').first.content
           etype = de.xpath('//control/entity_type').first
           etype = etype.content if etype
-          c_url = "#{THIS_URL}/get_children?pid=#{p.to_s}"
+          c_url = "#{settings.this_url}/get_children?pid=#{p.to_s}"
 
           attributes = {
             'pid'   => "#{p.to_s}",
@@ -103,7 +99,7 @@ puts result[:result]
               attributes = {
                 'mid' => mid,
                 'type' => md.xpath('type').first.content,
-                'url' => THIS_URL + '/get_metadata?mid=' + mid
+                'url' => settings.this_url + '/get_metadata?mid=' + mid
               }
               xml.metadata(attributes)
             }
@@ -154,7 +150,7 @@ puts result[:result]
       if _more > 0
         attributes['next'] = "#{_next.to_s}"
         attributes['more'] = "#{_more.to_s}"
-        attributes['next_url'] = "#{THIS_URL}/get_children?pid=#{pid}&from=#{_next.to_s}&max_results=#{max}"
+        attributes['next_url'] = "#{settings.this_url}/get_children?pid=#{pid}&from=#{_next.to_s}&max_results=#{max}"
       end # if _more > 0
 
       xml.result(attributes) do
@@ -164,8 +160,8 @@ puts result[:result]
           p = h['PID']
           label = h['LABEL']
 
-          t_url = "#{THIS_URL}/get_pid?redirect&usagetype=THUMBNAIL&pid=#{p.to_s}&custom_att_3=stream"
-          v_url = "#{THIS_URL}/get_pid?redirect&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
+          t_url = "#{settings.this_url}/get_pid?redirect&usagetype=THUMBNAIL&pid=#{p.to_s}&custom_att_3=stream"
+          v_url = "#{settings.this_url}/get_pid?redirect&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
 
           attributes = {
             'pid'   => "#{p.to_s}",
@@ -194,9 +190,9 @@ puts result[:result]
     viewer = params['redirect']
     if viewer.nil? and params.has_key?('redirect')
       if params.has_key?('custom_att_3') and params['custom_att_3'] == 'stream'
-        viewer = VIEWER
+        viewer = settings.view_url
       else
-        viewer = VIEWER_X
+        viewer = settings.strm_url
       end # if params.has_key?
     end # if viewer.nil?
 
