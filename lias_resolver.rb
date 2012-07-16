@@ -25,7 +25,6 @@ class LiasResolver < Sinatra::Base
   def initialize
     set :root, File.dirname(__FILE__)
     set :static, true
-    set :public_folder, Proc.new { File.join(root, "public") }
   end
 
   before do
