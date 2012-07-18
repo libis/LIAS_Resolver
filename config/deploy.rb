@@ -19,8 +19,6 @@ set :keep_releases, 2
 
 server "resolver.lias.be", :app, :web, :db, :primary => true
 
-# if you want to clean up old releases on each deploy uncomment this:
-
 namespace :remote do
 
   task :fw_off do

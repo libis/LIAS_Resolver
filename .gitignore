@@ -20,3 +20,4 @@ doc/
 lias_resolver.yml
 *.log
 *.pid
+.idea
