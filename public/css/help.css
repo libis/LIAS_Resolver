@@ -1,0 +1,147 @@
+html {
+}
+
+body {
+    min-height: 100%;
+    height: 100%;
+    padding: 20px;
+    padding-top: 0px;
+    margin: 10px;
+    color: #ffffff;
+    font-size: small;
+    text-align: left;
+    background: #fff;
+}
+
+BODY, DIV, TEXTAREA {
+    font-family: Tahoma, Arial, sans-serif;
+}
+
+TABLE {
+    border-collapse: collapse;
+    border-style: solid;
+}
+
+THEAD {
+    font-style: oblique;
+    font-weight: bold;
+    border-bottom-style: double;
+}
+
+TR {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+TD, FORM {
+    padding: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: smaller;
+}
+
+CODE, TD.parameter {
+    font-weight: bold;
+    font-style: italic;
+}
+
+H1 {
+    font-size: xx-large;
+    padding: 10px;
+    background: #808080;
+    color: #fffacd;
+    text-align: center;
+}
+
+H2 {
+    font-size: x-large;
+    padding: 4px;
+    background: #b0c4de;
+    color: #ffffff;
+}
+
+H3 {
+    font-size: larger;
+    font-style: oblique;
+    border-bottom-style: dotted;
+}
+
+DIV.title {
+    margin: 0em;
+}
+
+DIV.index {
+    display: block;
+    background: #b0c4de;
+    color: #fffacd;
+    float: left;
+    width: 13em;
+    height: 600px;
+}
+
+#home {
+    font-size: x-large;
+    padding-bottom: 20px;
+}
+
+.index ul {
+    padding: 0px;
+}
+
+.index ul li {
+    list-style: none inside none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.index ul li a {
+    padding: 5px 20px;
+    display: block;
+    text-decoration:none;
+    color: #fffacd;
+}
+
+.index ul li:hover {
+    background-color: #fffacd;
+}
+
+.index ul li:hover > a {
+    color: #b0c4de;
+}
+
+DIV.detail {
+    display: block;
+    background: #fffacd;
+    color: #00008b;
+    margin-left: 14em;
+    height: 600px;
+}
+
+DIV.subtitle {
+    display: block;
+    font-size: x-large;
+    padding-top: 20px;
+    padding-left: 20px;
+    background: #b0c4de;
+    color: #ffffff;
+    text-align: left;
+    vertical-align: bottom;
+    height: 50px;
+}
+
+DIV.helptext {
+    display: box;
+    margin: 20px;
+    overflow: auto;
+    overflow-style: auto;
+    height: 500px;
+}
+
+DIV.comment {
+    font-style: oblique;
+}
+
+DIV#help {
+    padding: 50px;
+    font-size: larger;
+}

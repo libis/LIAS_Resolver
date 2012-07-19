@@ -1,0 +1,160 @@
+-# coding: utf-8
+#find_pid
+
+  .subtitle find_pid
+
+  .helptext
+
+    .comment search in DigiTool for objects
+
+    %h3 arguments:
+
+    %table
+      %thead
+        %tr
+          %td parameter name
+          %td default value
+          %td description
+      %tbody
+        %tr
+          %td.parameter key
+          %td label
+          %td the column name to search in
+        %tr
+          %td.parameter search
+          %td
+          %td the value to search for
+        %tr
+          %td.parameter max_results
+          %td 20
+          %td the number of results to return
+        %tr
+          %td.parameter from
+          %td 0
+          %td the index of the first item in the result
+        %tr
+          %td.parameter filter
+          %td
+          %td criteria to filter the results with
+        %tr
+          %td.parameter sort
+          %td
+          %td sort options
+
+    %br
+
+    %p
+      The
+      %code key
+      parameter is the column name in the HDEControl table that will serve as the primary search target.
+      Two characters can be appended to the column name to configure the search:
+      %ul
+        %li
+          if the column name ends with a <code>!</code>, the search will be negated and the Resolver will look for records
+          that do <span style="font-weight: bold; font-style: italic;">not</span> match the search criterion.
+        %li
+          if the column name ends with a
+          %code ~
+          , the search will be case insensitive. It is of course mandatory that the column contains text data.
+        %li
+          if the column name ends with a
+          %code +
+          , the search will look for values larger than the search term.
+        %li
+          if the column name ends with a
+          %code -
+          , the search will look for values smaller than the search term.
+        %li
+          if the column name ends with a
+          %code =
+          , the Resolver will not use any search operator and it will append the search value you supply litteraly.
+          You should specify the correct search operator as part of the search term. The
+          %a( href="http://docs.oracle.com/html/A95915_01/sqopr.htm#i1004774")
+            Oracle search syntax
+          applies to that value.
+        %li
+          if multiple control characters are combined,
+          %ul
+            %li
+              the <code>!</code> must precede the <code>~</code>.
+            %li
+              the characters <code>+</code>, <code>-</code> and <code>=</code> are mutually exclusive and cannot be
+              combined with any of the other characters.
+
+    %p
+      The <code>search</code> parameter contains the value to search for. It may contain wildcards:
+      %ul
+        %li the character <code>_</code> allows hou to match on a single character.
+        %li the character <code>%</code> allows you to match any string of any length (including zero length).
+        %li to enter either of these characters litterally, you should escape it by putting a <code>!</code> in front of the wildcard character.
+
+      If the search is for text data, make sure that you enclose the search term within single quotes (<code>'</code>)!
+
+    %p
+      The <code>max_results</code> and <code>from</code> parameters may be used to limit the number of results
+      that the Resolver returns and to retrieve the results in smaller batches.
+      However, since the Resolver is stateless, each time a batch is requested, the query will be re-executed and
+      <code>from</code> items in the result set will be skipped and the following <code>max_results</code> will be
+      returned.
+
+    %p
+      This causes retrieving the results in batches to be possibly very resource intensive on the server and should be
+      avoided if possible. Usage of <code>max_results</code> is encouraged, as it prevents getting a huge result set.
+
+    %p
+      Optionally the search may be narrowed by a <code>filter</code>. The syntax for value of this parameter is:
+      <code><em>key</em>:<em>value</em>['|'<em>key</em>:<em>value</em>...]</code>
+
+    %p
+      The syntax rules for <code>key</code> and <code>value</code> are as noted above for the <code>key</code> and
+      <code>search</code> parameters.
+
+    %p
+      The Resolver will automatically filter the results to make sure only records that are not suppressed or private
+      will be returned. Additionally, only the 'ARCHIVE' manifestation objects will be returned (or 'VIEW' manifestations
+      if the object is 'COMPLEX' or 'METS'). Any filter you supply will be added on top of this default filter.
+
+    %p
+      It is also possible to supply a sorting instruction with the <code>sort</code> parameter. It takes
+      '<code>column</code> [<code>asc</code>|<code>desc</code>]' values as proper syntax. Multiple values can be
+      supplied by separating them with a '<code>|</code>' character.
+
+    %p
+      The special sorting instruction <code>random</code> will make the Resolver return the hits in a random order.
+      Note that since for each batch the query will be re-executed, the next batch may contain some of the records
+      from the previous batch. Hence it does not make sense to use the batch feature if random order is required.
+
+    %p
+      Random sorting makes the Resolver ignore any of the other supplied sorting instructions.
+
+    %h3 The result XML
+
+    %p
+      The Resolver will return an XML document containing the results of the requested search operation. The root
+      element is <code>result</code> and it has the following attributes:
+      %ul
+        %li <code>search</code>: the search term supplied (optional).
+        %li <code>total</code>: the number of records found.
+        %li <code>first</code>: the index of the first record in the set which is returned.
+        %li <code>last</code>: the index of the last record in the set which is returned.
+        %li <code>next</code>: the index of the first record in the set which is not returned (optional).
+        %li <code>more</code>: the amount of records remaining in the set (optional).
+
+    %p
+      For each record returned a sub-element <code>item</code> will be present. The attributes of this element are:
+      %ul
+        %li <code>pid</code> the PID of the record.
+        %li <code>label</code> the label of the record.
+        %li <code>thumbnail</code> the URL that should be used to retrieve the thumbnail manifestation of the object.
+        %li <code>view</code> the URL that should be used to retrieve the view manifestation of the object.
+        %li <code>children</code> the URL that should be used to retrieve the child objects of the object. Optional: only present for 'COMPLEX' and 'METS' objects.
+
+      The thumbnail URL will be a streaming URL, while the view URL links to the DigiTool viewer.
+
+    %p
+      Each <code>item</code> element may have <code>metadata</code> child elements that contain information about
+      the descriptive metadata that is linked to the object. The <code>metadata</code> element has three attributes:
+      %ul
+        %li <code>mid</code> the MID of the metadata record.
+        %li <code>type</code> the format of the metadata record. Will be <code>dc</code> mostly.
+        %li <code>url</code> the URL that should be used to retrieve the metadata record.

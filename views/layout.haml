@@ -1,0 +1,23 @@
+-# coding: utf-8
+!!!
+%html
+  %head
+    %title LIAS Resolver on-line help
+    %link( href="/icons/favicon.ico" rel="shortcut icon" type="image/x-icon" )
+    %link( href="/css/help.css" rel="stylesheet" type="text/css")
+  %body
+    .title
+      %h1 LIAS Resolver on-line help
+
+    .index
+      %ul
+        %li
+          %a.index#home(href="/help")
+            Help topics
+        - %w(find_pid get_children get_pid get_mid get_metadata).each do |x|
+          %li
+            %a.index( href="#{x}.help" )
+              #{x}
+
+    .detail
+      =yield

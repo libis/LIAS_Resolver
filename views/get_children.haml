@@ -1,0 +1,61 @@
+-# coding: utf-8
+#get_children
+
+  .subtitle get_children
+
+  .helptext
+
+    .comment retrieve the children of an object with hierarchy
+
+    %h3 arguments:
+
+    %table
+      %thead
+        %tr
+          %td parameter name
+          %td default value
+          %td description
+      %tbody
+        %tr
+          %td.parameter pid
+          %td
+          %td the pid of the the object for which to retrieve the child objects
+        %tr
+          %td.parameter max_results
+          %td 20
+          %td the number of results to return
+        %tr
+          %td.parameter from
+          %td 0
+          %td the index of the first item in the result
+    %br
+
+    %p
+      The <code>pid</code> parameter is required. The other parameters are optional and have a similar purpose as
+      explained for the <code><a href="/find_pid.help">find_pid</a></code> method.
+
+    <h3>The result XML</h3>
+
+    %p
+      The Resolver will return an XML document containing the requested child information. The root
+      element is <code>result</code> and it has the following attributes:
+      %ul
+        %li <code>parent</code>: the parent's PID as issued with the request.
+        %li <code>total</code>: the number of records found.
+        %li <code>first</code>: the index of the first record in the set which is returned.
+        %li <code>last</code>: the index of the last record in the set which is returned.
+        %li <code>next</code>: the index of the first record in the set which is not returned (optional).
+        %li <code>more</code>: the amount of records remaining in the set (optional).
+        %li <code>next_url</code>: the URL to be called for obtaining the next batch of child records (optional).
+
+    %p
+      For each child record returned a sub-element <code>item</code> will be present. The attributes of this element are:
+      %ul
+        %li <code>pid</code> the PID of the child object.
+        %li <code>label</code> the label of the record.
+        %li <code>thumbnail</code> the URL that should be used to retrieve the thumbnail manifestation of the object.
+        %li <code>view</code> the URL that should be used to retrieve the view manifestation of the object.
+        %li
+        <code>children</code> the URL that should be used to retrieve the child objects of the object.
+        Optional: only present for 'COMPLEX' and 'METS' objects.
+    The thumbnail URL will be a streaming URL, while the view URL links to the DigiTool viewer.

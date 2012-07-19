@@ -1,0 +1,83 @@
+-# coding: utf-8
+#get_pid
+
+  .subtitle get_pid
+
+  .helptext
+
+    .comment search manifestations of an object
+
+    %h3 arguments:
+
+    %table
+      %thead
+        %tr
+          %td parameter name
+          %td default value
+          %td description
+      %tbody
+        %tr
+          %td.parameter pid
+          %td
+          %td the pid of the the object for which to retrieve the manifestation(s)
+        %tr
+          %td.parameter usagetype
+          %td
+          %td the usage type(s) of the manifestations
+        %tr
+          %td.parameter redirect
+          %td
+          %td request the Resolver to redirect the client to the viewer URL of the object found
+        %tr
+          %td.parameter custom_att_3
+          %td
+          %td redirect to the viewer or the stream URL
+
+    %br
+
+    %p
+      The <code>pid</code> parameter is required. It should hold the PID of an existing object for which other
+      manifestation objects will be searched.
+
+    %p
+      The <code>usagetype</code> parameter is also required and it must contain the usage type of the manifestation
+      object that the Resolver should be searching.
+      %ul
+        %li If the value is empty, the original object will be returned. This could be used to check if the object still exists.
+        %li If the value is '<code>ANY</code>' all manifestations will be found, including the object we started from.
+        %li
+          With the special value '<code>NULL</code>' the Resolver will target related objects with an empty usage type.
+          This is typically an error, but nevertheless can happen.
+        %li
+          Any other value will be considered to be a usage type. The Resolver will attempt to locate the manifestation
+          object with the given usage type. The object refered to by the <code>pid</code> parameter will be taken into
+          consideration too.<br>
+          Multiple usage types can be passed in this parameter by separating them with a '<code>,</code>' (comma). The
+          manifestations found will be returned in the order specified in this parameter.
+
+    %p
+      The <code>redirect</code> parameter is optional. If present it instructs the Resolver to not return a result XML,
+      but to redirect the client to a viewer URL for the first object found. That means that if multiple usage types are
+      submitted in the <code>usagetype</code> parameter, it will redirect to viewing the first manifestation in that list
+      found.
+
+    %p
+      The <code>redirect</code> may also contain a value. This value will be used as the URL to redirect to and the PID of
+      the manifestation found will be appended to this URL before submitting the redirect.
+
+    %p
+      The <code>custom_att_3</code> parameter - if present - must contain the value '<code>stream</code>' to instruct the
+      Resolver to redirect to the streaming URL instead of the viewer URL. This parameter only matters if the
+      <code>redirect</code> parameter is present and empty.
+
+    %h3 The result XML
+
+    %p
+      If the Resolver is not instructed to redirect the client it will return an XML document containing the PIDs of the
+      manifestations found. The root element is <code>result</code> and it has the following attributes:
+      %ul
+        %li <code>source_pid</code>: the PID of the object the search started from.
+        %li <code>target_usagetype</code>: the usage type(s) requested as per <code>usagetype</code> parameter.
+    %p
+      For each manifestation object found a <code>target_pid</code> sub-element is added with the manifestation's PID as
+      content.

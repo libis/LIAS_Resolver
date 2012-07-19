@@ -1,0 +1,43 @@
+-# coding: utf-8
+#get_mid
+
+  .subtitle get_mid
+
+  .helptext
+
+    .comment search for descriptive metadata of an object
+
+    %h3 arguments:
+
+    %table
+      %thead
+        %tr
+          %td parameter name
+          %td default value
+          %td description
+      %tbody
+        %tr
+          %td.parameter pid
+          %td
+          %td the PID of the object for which to retrieve the metadata records
+
+    %br
+
+    %p
+      The <code>pid</code> parameter is required. It should hold the PID of an existing object for which the manifestation
+      records will be retrieved.
+
+    %h3 The result XML
+
+    %p
+      The Resolver will return an XML document containing the metadata info for the source PID. The root element is
+      <code>result</code> and it has the following attributes:
+      %ul
+        %li <code>pid</code>: the PID of the object the search started from.
+
+    %p
+      For each descriptive metadata record found a <code>metadata</code> sub-element is added with the following
+      attributes:
+      %ul
+        %li <code>mid</code>: the MID of the metadata record.
+        %li <code>type</code>: the type of the metadata record (typically '<code>dc</code>' for Dublin Core)
