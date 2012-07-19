@@ -21,6 +21,10 @@
           %td label
           %td the column name to search in
         %tr
+          %td.parameter operator
+          %td =
+          %td operator to use
+        %tr
           %td.parameter search
           %td
           %td the value to search for
@@ -44,42 +48,15 @@
     %br
 
     %p
-      The
-      %code key
-      parameter is the column name in the HDEControl table that will serve as the primary search target.
-      Two characters can be appended to the column name to configure the search:
-      %ul
-        %li
-          if the column name ends with a <code>!</code>, the search will be negated and the Resolver will look for records
-          that do <span style="font-weight: bold; font-style: italic;">not</span> match the search criterion.
-        %li
-          if the column name ends with a
-          %code ~
-          , the search will be case insensitive. It is of course mandatory that the column contains text data.
-        %li
-          if the column name ends with a
-          %code +
-          , the search will look for values larger than the search term.
-        %li
-          if the column name ends with a
-          %code -
-          , the search will look for values smaller than the search term.
-        %li
-          if the column name ends with a
-          %code =
-          , the Resolver will not use any search operator and it will append the search value you supply litteraly.
-          You should specify the correct search operator as part of the search term. The
-          %a( href="http://docs.oracle.com/html/A95915_01/sqopr.htm#i1004774")
-            Oracle search syntax
-          applies to that value.
-        %li
-          if multiple control characters are combined,
-          %ul
-            %li
-              the <code>!</code> must precede the <code>~</code>.
-            %li
-              the characters <code>+</code>, <code>-</code> and <code>=</code> are mutually exclusive and cannot be
-              combined with any of the other characters.
+      The <code>key</code> parameter is the column name in the HDEControl table that will serve as the primary search target.
+
+    %p
+      If the column name ends with a <code>~</code>, the search will be case insensitive.
+      It is of course mandatory that the column contains text data in this case.
+
+    %p
+      In the <code>operator</code> parameter an alternative operator can be supplied. The operator should be specified in the
+      correct <a href="http://docs.oracle.com/html/A95915_01/sqopr.htm#i1004774">Oracle syntax</a>.
 
     %p
       The <code>search</code> parameter contains the value to search for. It may contain wildcards:
@@ -88,7 +65,8 @@
         %li the character <code>%</code> allows you to match any string of any length (including zero length).
         %li to enter either of these characters litterally, you should escape it by putting a <code>!</code> in front of the wildcard character.
 
-      If the search is for text data, make sure that you enclose the search term within single quotes (<code>'</code>)!
+      If the search is for text data, make sure that you enclose the search term within single quotes!
+
 
     %p
       The <code>max_results</code> and <code>from</code> parameters may be used to limit the number of results

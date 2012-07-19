@@ -51,6 +51,7 @@ H1 {
     background: #808080;
     color: #fffacd;
     text-align: center;
+    margin-bottom: 0em;
 }
 
 H2 {
@@ -72,6 +73,7 @@ DIV.title {
 
 DIV.index {
     display: block;
+    margin-top: 1em;
     background: #b0c4de;
     color: #fffacd;
     float: left;
@@ -113,6 +115,7 @@ DIV.detail {
     display: block;
     background: #fffacd;
     color: #00008b;
+    margin-top: 1em;
     margin-left: 14em;
     height: 600px;
 }
