@@ -103,8 +103,8 @@ puts params[:operator]
           t_url = "#{settings.this_url}/get_pid?redirect&usagetype=THUMBNAIL&pid=#{p.to_s}&custom_att_3=stream"
           v_url = "#{settings.this_url}/get_pid?redirect&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
           de = result[:result].xpath('//xb:digital_entity[pid=$pid]', nil, { :pid => p.to_s }).first
-          label = de.xpath('//control/label').first.content
-          etype = de.xpath('//control/entity_type').first
+          label = de.xpath('control/label').first.content
+          etype = de.xpath('control/entity_type').first
           etype = etype.content if etype
           c_url = "#{settings.this_url}/get_children?pid=#{p.to_s}"
 
@@ -119,7 +119,7 @@ puts params[:operator]
 
           xml.item(attributes) do
 
-            de.xpath("//xb:digital_entity[pid=$pid]/mds/md[name = 'descriptive']", nil, { :pid => p.to_s }).each { |md|
+            de.xpath("mds/md[name = 'descriptive']").each { |md|
 
               mid = md.xpath('mid').first.content
 
