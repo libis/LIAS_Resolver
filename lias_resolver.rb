@@ -1,13 +1,14 @@
 # coding: utf-8
 
-require 'sinatra'
-require 'sinatra/base'
-#noinspection RubyResolve
-require 'sinatra/config_file'
-require 'builder'
 require 'cgi'
 require 'set'
+
+require 'sinatra'
+require 'sinatra/base'
+require 'sinatra/config_file'
+require 'builder'
 require 'haml'
+
 require './lib/digital_entity_explorer'
 require './lib/digital_entity_manager'
 require './lib/meta_data_manager'
@@ -22,7 +23,6 @@ class LiasResolver < Sinatra::Base
 
   config_file 'lias_resolver.yml'
 
-  digital_entity_explorer = DigitalEntityExplorer.new
   connection = nil
 
   set :static, true
@@ -67,7 +67,7 @@ puts params[:operator]
       options[:operator] = operator
     end
 
-    result = digital_entity_explorer.search(key, term, from, max, options)
+    result = DigitalEntityExplorer.instance.search(key, term, from, max, options)
 
     pid_list = result[:pids]
 
@@ -81,7 +81,7 @@ puts params[:operator]
 
     headers 'Content-type' => 'text/xml', 'Charset' => 'utf-8'
 
-    xml = builder do |xml|
+    builder do |xml|
 
       xml.instruct! :xml, version: '1.0', encoding: 'utf-8'
 

@@ -11,6 +11,7 @@ class LiasResolver < Sinatra::Base
 
     def oracle_connect(connection)
       while connection.nil? or connection.ping == false
+        #noinspection RubyResolve
         connection = OCI8.new(settings.db_user, settings.db_pass, settings.db_host)
       end
       connection
@@ -89,6 +90,8 @@ SQL
       when :exact
       when :error
         return nil
+        else
+          # type code here
       end
 
       sql
@@ -98,7 +101,7 @@ SQL
     def collect_pids_from_cursor( cursor )
       pid_list = []
       cursor.exec
-      while pid = cursor.fetch
+      while (pid = cursor.fetch)
         pid_list << pid.join
       end
       pid_list
@@ -130,7 +133,7 @@ SQL
       end
 
       result
-      
+
     end
 
     def collect_child_pids( pid, from, max, connection )
@@ -199,7 +202,7 @@ SQL
         cursor.bind_param(':max_row', max_row.to_s)
         cursor.prefetch_rows = max
         cursor.exec
-        while h = cursor.fetch_hash
+        while (h = cursor.fetch_hash)
           pid_list << h
         end
 
@@ -211,36 +214,6 @@ SQL
 
       { count: total, pids: pid_list }
 
-    end
-
-    def collect_dc_info(pid, connection)
-
-      sql <<-SQL
-SELECT t1.pid pid, t1.mid mid, t2.value data
-  FROM hdepidmid t1
-  JOIN hdemetadata t2 on t1.hdemetadata = t2.id
-  where pid = :pid
-    and t2.mdid = 10
-SQL
-
-      result = []
-
-      begin
-        connection = oracle_connect(connection)
-        cursor = connection.parse sql
-        cursor.bind_param(':pid', pid.to_s)
-
-        cursor.exec
-        while(h = cursor.fetch_hash)
-          result << h
-        end
-
-      ensure
-        cursor.close if cursor
-      end
-
-      result
-      
     end
 
   end

@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'singleton'
 
 require_relative 'soap_client'
@@ -99,25 +100,25 @@ class DigitalEntityManager < SoapClient
     # { 'metadata' => 'delta',
     #   'relation' => 'all',
     # }
-    digital_entity_call = create_document
-    root = create_node('digital_entity_call',
-                       :namespaces => { :node_ns  => 'xb',
-                                        'xb'      => 'http://com/exlibris/digitool/repository/api/xmlbeans'})
+    digital_entity_call = XmlDocument.new
+    root = digital_entity_call.create_node('digital_entity_call',
+                                           :namespaces => { :node_ns  => 'xb',
+                                                            'xb'      => 'http://com/exlibris/digitool/repository/api/xmlbeans'})
     digital_entity_call.root = root
 
-    root << (digital_entity = create_node('xb:digital_entity'))
-    digital_entity << create_text_node('pid', de_info['pid']) if de_info['pid']
-    digital_entity << create_text_node('vpid', de_info['vpid']) if de_info['vpid']
+    root << (digital_entity = digital_entity_call.create_node('xb:digital_entity'))
+    digital_entity << digital_entity_call.create_text_node('pid', de_info['pid']) if de_info['pid']
+    digital_entity << digital_entity_call.create_text_node('vpid', de_info['vpid']) if de_info['vpid']
     if de_info['control']
-      digital_entity << (ctrl = create_node('control'))
-      de_info['control'].each { |k,v| ctrl << create_text_node(k.to_s, v.to_s) }
+      digital_entity << (ctrl = digital_entity_call.create_node('control'))
+      de_info['control'].each { |k,v| ctrl << digital_entity_call.create_text_node(k.to_s, v.to_s) }
     end
     if de_info['metadata'] || update_options['metadata']
       attributes = {}
       if (cmd = update_options.delete 'metadata')
         attributes['cmd'] = 'delete_and_insert_' + cmd
       end
-      digital_entity << (mds = create_node('mds', :attributes => attributes))
+      digital_entity << (mds = digital_entity_call.create_node('mds', :attributes => attributes))
       if de_info['metadata']
         de_info['metadata'].each do |m|
           attributes = {}
@@ -130,8 +131,8 @@ class DigitalEntityManager < SoapClient
           if (link_to_exists = m.delete 'link_to_exists')
             attributes['link_to_exists'] = link_to_exists
           end
-          mds << (md = create_node('md', :attributes => attributes))
-          m.each { |k,v| md << create_text_node(k.to_s, v.to_s) }
+          mds << (md = digital_entity_call.create_node('md', :attributes => attributes))
+          m.each { |k,v| md << digital_entity_call.create_text_node(k.to_s, v.to_s) }
         end
       end
     end
@@ -140,15 +141,15 @@ class DigitalEntityManager < SoapClient
       if (cmd = update_options.delete 'relation')
         attributes['cmd'] = 'delete_and_insert_' + cmd
       end
-      digital_entity << (relations = create_node('relations', :attributes => attributes))
+      digital_entity << (relations = digital_entity_call.create_node('relations', :attributes => attributes))
       if de_info['relation']
         de_info['relation'].each do |r|
           attributes = {}
           if (cmd = r.delete 'cmd')
             attributes['cmd'] = cmd
           end
-          relations << (relation = create_node('relation', :attributes => attributes))
-          r.each { |k,v| relation << create_text_node(k.to_s, v.to_s) }
+          relations << (relation = digital_entity_call.create_node('relation', :attributes => attributes))
+          r.each { |k,v| relation << digital_entity_call.create_text_node(k.to_s, v.to_s) }
         end
       end
     end
@@ -163,12 +164,11 @@ class DigitalEntityManager < SoapClient
       if (location = r.delete 'location')
         attributes['location'] = location
       end
-      digital_entity << (stream_ref = create_node('stream_ref', :attributes => attributes))
-      de_info['stream_ref'].each { |k,v| stream_ref << create_text_node(k.to_s, v.to_s) }
+      digital_entity << (stream_ref = digital_entity_call.create_node('stream_ref', :attributes => attributes))
+      de_info['stream_ref'].each { |k,v| stream_ref << digital_entity_call.create_text_node(k.to_s, v.to_s) }
     end
-    root << create_text_node('command', command)
-    digital_entity_call
+    root << digital_entity_call.create_text_node('command', command)
+    digital_entity_call.document
   end
 
 end
-
