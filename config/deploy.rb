@@ -37,6 +37,7 @@ namespace :remote do
   task :create_symlinks do
     run "ln -ns #{shared_path}/log #{current_path}/"
     run "ln -ns #{shared_path}/pid #{current_path}/"
+    run "ln -ns #{shared_path}/lias_resolver.yml #{current_path}/"
   end
 
   task :stop_server do
