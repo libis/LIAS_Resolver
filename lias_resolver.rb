@@ -218,9 +218,9 @@ puts params[:operator]
     viewer = params['redirect']
     if viewer.nil? and params.has_key?('redirect')
       if params.has_key?('custom_att_3') and params['custom_att_3'] == 'stream'
-        viewer = settings.view_url
-      else
         viewer = settings.strm_url
+      else
+        viewer = settings.view_url
       end # if params.has_key?
     end # if viewer.nil?
 
