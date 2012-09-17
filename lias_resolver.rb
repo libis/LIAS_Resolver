@@ -225,6 +225,7 @@ puts params[:operator]
     end # if viewer.nil?
 
     usagetype = params['usagetype']
+    usagetype = '' unless usagetype
     if usagetype.empty?
       lookup_type = :excact
     elsif usagetype =~ /^ANY$/i
