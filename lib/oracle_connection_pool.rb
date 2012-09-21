@@ -2,7 +2,8 @@
 require 'oci8'
 require 'singleton'
 
-class OracleConnectionPool < Singleton
+class OracleConnectionPool
+  include Singleton
 
   attr_reader connection_pool
 

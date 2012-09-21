@@ -1,4 +1,5 @@
 # coding: utf-8
+
 require_relative 'lib/oracle_connection_pool'
 
 class LiasResolver < Sinatra::Base

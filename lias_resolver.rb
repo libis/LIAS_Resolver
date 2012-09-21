@@ -9,12 +9,12 @@ require 'sinatra/config_file'
 require 'builder'
 require 'haml'
 
-require './lib/digital_entity_explorer'
-require './lib/digital_entity_manager'
-require './lib/meta_data_manager'
-require './lib/xml_document'
+require_relative 'lib/digital_entity_explorer'
+require_relative 'lib/digital_entity_manager'
+require_relative 'lib/meta_data_manager'
+require_relative 'lib/xml_document'
 
-require './lias_resolver_helper'
+require_relative 'lias_resolver_helper'
 
 #noinspection RubyStringKeysInHashInspection,RubyResolve
 class LiasResolver < Sinatra::Base
