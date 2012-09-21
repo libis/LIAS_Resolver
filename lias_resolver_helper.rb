@@ -13,6 +13,7 @@ class LiasResolver < Sinatra::Base
 
     def oracle_connect(connection)
       if connection.nil?
+        #noinspection RubyResolve
         connection = OracleConnectionPool.instance.get_connection settings.db_user, settings.db_pass, settings.db_host
         puts "Requested new connection: #{connection.inspect}"
       end

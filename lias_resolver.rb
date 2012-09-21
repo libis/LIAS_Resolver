@@ -23,6 +23,7 @@ class LiasResolver < Sinatra::Base
 
   config_file 'lias_resolver.yml'
 
+  #noinspection RubyUnusedLocalVariable
   connection = nil
 
   set :static, true
