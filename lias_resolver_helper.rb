@@ -23,7 +23,7 @@ class LiasResolver < Sinatra::Base
       end
       connection
 =end
-      if connection.nil? or connection.ping == false
+      if connection.nil?
         return OCI8.new(settings.db_user, settings.db_pass, @connection_pool)
       end
       connection
