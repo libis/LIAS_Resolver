@@ -1,5 +1,5 @@
 # coding: utf-8
-require 'oci8'
+require 'lib/oracle_connection_pool'
 
 class LiasResolver < Sinatra::Base
 
@@ -11,24 +11,9 @@ class LiasResolver < Sinatra::Base
 
 
     def oracle_connect(connection)
-      if @connection_pool.nil?
-        @connection_pool = OCI8::ConnectionPool.new(0, 30, 1, settings.db_user, settings.db_pass, settings.db_host)
-        @connection_pool.nowait = false
-        @connection_pool.timeout = 1
-      else
-        puts "Connection pool: #{@connection_pool.inspect}"
-        puts "connections: Open: #{@connection_pool.open_count} Busy:#{@connection_pool.busy_count}"
-      end
-
-=begin
-      while connection.nil? or connection.ping == false
-        #noinspection RubyResolve
-        connection = OCI8.new(settings.db_user, settings.db_pass, settings.db_host)
-      end
-      connection
-=end
       if connection.nil?
-        return OCI8.new(settings.db_user, settings.db_pass, @connection_pool)
+        connection = OracleConnectionPool.instance.get_connection settings.db_user, settings.db_pass, settings.db_host
+        puts "Requested new connection: #{connection.inspect}"
       end
       connection
     end
