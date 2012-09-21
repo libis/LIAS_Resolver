@@ -12,9 +12,9 @@ class LiasResolver < Sinatra::Base
 
     def oracle_connect(connection)
       if @connection_pool.nil?
-        @connection_pool = OCI8::ConnectionPool.new(5, 30, 5, settings.db_user, settings.db_pass, settings.db_host)
+        @connection_pool = OCI8::ConnectionPool.new(0, 30, 1, settings.db_user, settings.db_pass, settings.db_host)
         @connection_pool.nowait = false
-        @connection_pool.timeout = 10
+        @connection_pool.timeout = 1
       end
 =begin
       while connection.nil? or connection.ping == false
