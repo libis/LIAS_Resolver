@@ -106,6 +106,8 @@ SQL
           # type code here
       end
 
+      puts "SQL generated: #{sql}"
+
       sql
 
     end
