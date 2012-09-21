@@ -5,7 +5,7 @@ require 'singleton'
 class OracleConnectionPool
   include Singleton
 
-  attr_reader connection_pool
+  attr_reader :connection_pool
 
   def get_connection(db_user, db_pass, db_host)
     if @connection_pool.nil?
