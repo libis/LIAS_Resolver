@@ -13,8 +13,7 @@ class OracleConnectionPool
       @connection_pool.nowait = false
       @connection_pool.timeout = 1
     else
-      puts "Connection pool: #{@connection_pool.inspect}"
-      puts "connections: Min: #{@connection_pool.min} Max: #{@connection_pool.max} Open: #{@connection_pool.open_count} Busy:#{@connection_pool.busy_count}"
+      puts "Connection pool: #{@connection_pool.inspect} | connections: Min: #{@connection_pool.min} Max: #{@connection_pool.max} Open: #{@connection_pool.open_count} Busy:#{@connection_pool.busy_count}"
     end
 
     OCI8.new(db_user, db_pass, @connection_pool)
