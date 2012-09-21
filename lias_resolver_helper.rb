@@ -15,7 +15,11 @@ class LiasResolver < Sinatra::Base
         @connection_pool = OCI8::ConnectionPool.new(0, 30, 1, settings.db_user, settings.db_pass, settings.db_host)
         @connection_pool.nowait = false
         @connection_pool.timeout = 1
+      else
+        puts "Connection pool: #{@connection_pool.inspect}"
+        puts "connections: Open: #{@connection_pool.open_count} Busy:#{@connection_pool.busy_count}"
       end
+
 =begin
       while connection.nil? or connection.ping == false
         #noinspection RubyResolve
@@ -105,8 +109,6 @@ SQL
         else
           # type code here
       end
-
-      puts "SQL generated: #{sql}"
 
       sql
 
