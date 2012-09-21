@@ -153,7 +153,7 @@ puts params[:operator]
     max = max.to_i | 20
     from = from.to_i | 0
 
-    result = collect_child_pids pid, from, max, connection
+    result = collect_child_pids pid, from, max, @connection
 
     total = result[:count]
     pid_list = result[:pids]
@@ -240,7 +240,7 @@ puts params[:operator]
     end # if usage_type
 
     sql = make_sql lookup_type
-    pid_list = run_query sql, pid, usagetype, connection
+    pid_list = run_query sql, pid, usagetype, @connection
 
     if viewer.nil?
       headers 'Content-type' => 'text/xml', 'Charset' => 'utf-8'
