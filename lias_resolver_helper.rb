@@ -10,14 +10,8 @@ class LiasResolver < Sinatra::Base
 
     config_file 'lias_resolver.yml'
 
-
-    def oracle_connect(connection)
-      if connection.nil?
-        #noinspection RubyResolve
-        connection = OracleConnectionPool.instance.get_connection settings.db_user, settings.db_pass, settings.db_host
-#        puts "Requested new connection: #{connection.inspect}"
-      end
-      connection
+    def oracle_connect
+      OracleConnectionPool.instance.get_connection settings.db_user, settings.db_pass, settings.db_host
     end
 
     def make_sql(lookup_type)
@@ -110,7 +104,7 @@ SQL
       pid_list
     end
 
-    def run_query(sql, pid, usagetype, connection)
+    def run_query(sql, pid, usagetype)
 
       return [] unless sql
       return [pid.to_s] if sql.empty?
@@ -118,7 +112,7 @@ SQL
       result = [].to_set
 
       begin
-        connection = oracle_connect(connection)
+        connection = oracle_connect
         cursor = connection.parse sql
         cursor.bind_param(':pid', pid.to_s)
 
@@ -133,13 +127,14 @@ SQL
 
       ensure
         cursor.close if cursor
+        connection.logoff
       end
 
       result
 
     end
 
-    def collect_child_pids( pid, from, max, connection )
+    def collect_child_pids( pid, from, max )
 
      base_sql = <<-SQL
 SELECT c1.pid pid, c1.label label
@@ -189,14 +184,12 @@ SQL
 
       begin
 
-        connection = oracle_connect(connection)
+        connection = oracle_connect
         cursor = connection.parse count_sql
         cursor.bind_param(':pid', pid.to_s)
         cursor.exec
         total = cursor.fetch[0].to_i
-        cursor.close
 
-        connection = oracle_connect(connection)
         cursor = connection.parse sql
         cursor.bind_param(':pid', pid.to_s)
         min_row = from + 1
@@ -211,7 +204,7 @@ SQL
 
       ensure
         cursor.close
-#        connection.logoff
+        connection.logoff
 
       end
 
