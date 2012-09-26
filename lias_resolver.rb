@@ -96,8 +96,8 @@ class LiasResolver < Sinatra::Base
 
         pid_list.each do |p|
 
-          t_url = "#{settings.this_url}/get_pid?redirect&usagetype=THUMBNAIL&pid=#{p.to_s}&custom_att_3=stream"
-          v_url = "#{settings.this_url}/get_pid?redirect&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
+          t_url = "#{settings.this_url}/get_pid?stream&usagetype=THUMBNAIL&pid=#{p.to_s}"
+          v_url = "#{settings.this_url}/get_pid?view&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
           de = result[:result].xpath('//xb:digital_entity[pid=$pid]', nil, { :pid => p.to_s }).first
           label = de.xpath('control/label').first.content
           etype = de.xpath('control/entity_type').first
