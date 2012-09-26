@@ -1,6 +1,6 @@
 # coding: utf-8
 
-require_relative 'lib/oracle_connection_pool'
+require_relative 'lib/digital_entity_manager'
 
 class LiasResolver < Sinatra::Base
 
@@ -10,203 +10,134 @@ class LiasResolver < Sinatra::Base
 
     config_file 'lias_resolver.yml'
 
-    def oracle_connect
-      OracleConnectionPool.instance.get_connection settings.db_user, settings.db_pass, settings.db_host
-    end
+    def get_digital_entity(pid, extended = false)
 
-    def make_sql(lookup_type)
-      sql = ''
+      reply = DigitalEntityManager.instance.retrieve_object(pid, extended)
 
-      case lookup_type
-      when :null
-        sql = <<-SQL
-SELECT pid
-  FROM hdecontrol
-   WHERE usagetype is NULL
-     AND pid = :pid
-UNION
-SELECT c1.pid
-  FROM hderelation r
-  JOIN hdecontrol c1 ON c1.id = r.control
-  JOIN hdecontrol c2 ON c2.id = r.targetcontrol
-  WHERE r.type = 3
-    AND c1.usagetype is NULL
-    AND c2.pid = :pid
-UNION
-SELECT c1.pid
-  FROM hderelation r
-  JOIN hdecontrol c1 ON c1.id = r.targetcontrol
-  JOIN hdecontrol c2 ON c2.id = r.control
-  WHERE r.type = 3
-    AND c1.usagetype is NULL
-    AND c2.pid = :pid
-SQL
-      when :any
-        sql = <<-SQL
-SELECT pid
-  FROM hdecontrol
-  WHERE pid = :pid
-UNION
-SELECT c1.pid
-  FROM hderelation r
-  JOIN hdecontrol c1 ON c1.id = r.control
-  JOIN hdecontrol c2 ON c2.id = r.targetcontrol
-  WHERE r.type = 3
-    AND c2.pid = :pid
-UNION
-SELECT c1.pid
-  FROM hderelation r
-  JOIN hdecontrol c1 ON c1.id = r.targetcontrol
-  JOIN hdecontrol c2 ON c2.id = r.control
-  WHERE r.type = 3
-    AND c2.pid = :pid
-SQL
-      when :array
-        sql = <<-SQL
-SELECT pid
-  FROM hdecontrol
-  WHERE usagetype = :usagetype
-    AND pid = :pid
-UNION
-SELECT c1.pid
-  FROM hderelation r
-  JOIN hdecontrol c1 ON c1.id = r.control
-  JOIN hdecontrol c2 ON c2.id = r.targetcontrol
-  WHERE r.type = 3
-    AND c1.usagetype = :usagetype
-    AND c2.pid = :pid
-UNION
-SELECT c1.pid
-  FROM hderelation r
-  JOIN hdecontrol c1 ON c1.id = r.targetcontrol
-  JOIN hdecontrol c2 ON c2.id = r.control
-  WHERE r.type = 3
-    AND c1.usagetype = :usagetype
-    AND c2.pid = :pid
-SQL
-      when :exact
-      when :error
-        return nil
-        else
-          # type code here
-      end
+      return nil unless reply and reply[:digital_entities]
 
-      sql
+      reply[:result].xpath('//xb:digital_entity[pid=$pid]', nil, { :pid => pid.to_s }).first
 
     end
 
-    def collect_pids_from_cursor( cursor )
-      pid_list = []
-      cursor.exec
-      while (pid = cursor.fetch)
-        pid_list << pid.join
-      end
-      pid_list
+    def has_accessrights?(pid)
+
+      digital_entity = get_digital_entity pid, true
+      return nil unless digital_entity
+
+      return true unless digital_entity.xpath('mds/md[type=\'rights_md\' and name=\'accessrights\']').empty?
+
+      false
+
     end
 
-    def run_query(sql, pid, usagetype)
+    def get_usagetype(pid, digital_entity = nil)
 
-      return [] unless sql
-      return [pid.to_s] if sql.empty?
+      digital_entity = get_digital_entity pid unless digital_entity
+      return nil unless digital_entity
 
-      result = [].to_set
+      usage_type = digital_entity.xpath('control/usage_type')
+      usage_type = digital_entity.xpath('usage_type') unless usage_type and !usage_type.empty?
+      usage_type = usage_type.first.text if usage_type
 
-      begin
-        connection = oracle_connect
-        cursor = connection.parse sql
-        cursor.bind_param(':pid', pid.to_s)
-
-        return collect_pids_from_cursor(cursor) unless usagetype.kind_of? Array
-
-        max_string = usagetype.max_by { |x| x.length }
-        cursor.bind_param(':usagetype', max_string)
-        usagetype.each do |ut|
-          cursor[':usagetype'] = ut
-          result += collect_pids_from_cursor cursor
+      if usage_type == 'VIEW'
+        file_name = digital_entity.xpath('stream_ref/file_name').first.text
+        if file_name =~ /VIEW_MAIN/
+          usage_type = 'VIEW_MAIN'
         end
+      end
 
-      ensure
-        cursor.close if cursor
-        connection.logoff
+      return usage_type
+    end
+
+    def get_metadata_ids(pid)
+
+      digital_entity = get_digital_entity pid
+
+      result = []
+
+      if digital_entity
+        digital_entity.xpath('mds/md[name=\'descriptive\']').each { |md|
+          result << [md.xpath('mid').first.content, md.xpath('type').first.content]
+        } # each md
+      end
+
+      result
+    end
+
+    def get_all_manifestations(pid)
+
+      result = {}
+
+      digital_entity = get_digital_entity pid, true
+      return result unless digital_entity
+
+      usage_type = get_usagetype pid, digital_entity
+
+      result[usage_type] ||= []
+      result[usage_type] << pid
+
+      digital_entity.xpath('relations/relation[type=\'manifestation\']').each do |manifestation|
+
+        pid = manifestation.xpath('pid').first.text
+
+        ut = get_usagetype pid
+
+        result[ut] ||= []
+        result[ut] << pid
+
       end
 
       result
 
     end
 
+    def get_manifestations(pid, usage_type, lookup_type)
+
+      if lookup_type == :exact
+        ut = get_usagetype pid
+        return { ut => [pid] }
+      end
+
+      manifestations = get_all_manifestations(pid)
+
+      case lookup_type
+        when :any
+          return manifestations
+        when :array
+        when :null
+        else
+          return nil
+      end
+
+      usage_type.inject({}) { |h, ut| h[ut] = manifestations[ut]; h }
+
+    end
+
     def collect_child_pids( pid, from, max )
-
-     base_sql = <<-SQL
-SELECT c1.pid pid, c1.label label
-  FROM hderelation r
-  JOIN hdecontrol c1 ON c1.id = r.control
-  JOIN hdecontrol c2 ON c2.id = r.targetcontrol
- WHERE r.type = 2
-   AND c1.usagetype = 'VIEW'
-   AND c2.pid = :pid
-    UNION
-SELECT c1.pid pid, c1.label label
-  FROM hderelation r
-  JOIN hdecontrol c1 ON c1.id = r.targetcontrol
-  JOIN hdecontrol c2 ON c2.id = r.control
- WHERE r.type = 2
-   AND c1.usagetype = 'VIEW'
-   AND c2.pid = :pid
-    MINUS
-SELECT c.pid pid, c.label label
-  FROM hdepidmid r
-  JOIN hdecontrol c ON c.id = r.hdecontrol
-  JOIN hdemetadata m ON m.id = r.hdemetadata
- WHERE m.mdid = 15
-SQL
-
-      sql = <<-SQL
-SELECT pid, label
-  FROM (
-    SELECT pid, label, ROWNUM rn
-      FROM (
-             #{base_sql}
-           )
-     WHERE ROWNUM <= :max_row
-       )
- WHERE rn >= :min_row
-SQL
-
-      count_sql = <<-SQL
-SELECT count(*)
-  FROM (
-         #{base_sql}
-       )
-SQL
 
       pid_list = []
       total = 0
 
-      begin
+      digital_entity = get_digital_entity pid, true
 
-        connection = oracle_connect
-        cursor = connection.parse count_sql
-        cursor.bind_param(':pid', pid.to_s)
-        cursor.exec
-        total = cursor.fetch[0].to_i
+      if digital_entity
 
-        cursor = connection.parse sql
-        cursor.bind_param(':pid', pid.to_s)
-        min_row = from + 1
-        max_row = from + max
-        cursor.bind_param(':min_row', min_row.to_s)
-        cursor.bind_param(':max_row', max_row.to_s)
-        cursor.prefetch_rows = max
-        cursor.exec
-        while (h = cursor.fetch_hash)
-          pid_list << h
+        children = digital_entity.xpath('relations/relation[type=\'include\' and usage_type=\'ARCHIVE\']')
+
+        children.each do |child|
+          pid = child.xpath('pid').first.text
+          label = child.xpath('label').first.text
+          pid_list << {'PID' => pid, 'LABEL' => label}
         end
 
-      ensure
-        cursor.close
-        connection.logoff
+        pid_list.sort_by! { |x| x['LABEL'] }
+
+        total = children.size
 
       end
+
+      pid_list = pid_list[from...from+max]
 
       { count: total, pids: pid_list }
 

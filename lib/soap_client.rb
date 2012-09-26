@@ -10,10 +10,10 @@ class SoapClient
   #noinspection RubyResolve
   def initialize( service )
     Savon.configure do |cfg|
-      cfg.log_level = :error
+      cfg.log_level = :info
       cfg.soap_version = 2
       cfg.raise_errors = false
-      HTTPI.log_level = :error
+      HTTPI.log_level = :info
       cfg.log = false
       HTTPI.log = false
     end
@@ -25,8 +25,6 @@ class SoapClient
   end
   
   def request( method, body)
-    b = body.clone; b.delete(:general)
-#    @@logger.debug(self.class) { "Request '#{method.inspect}' '#{b.inspect}'"}
     response = @client.request method do |soap|
       soap.body = body
     end
@@ -42,8 +40,6 @@ class SoapClient
     result = get_xml_response(r)
     doc = Nokogiri::XML(result)
     if response.success?
-#      @@logger.debug(self.class) { "Response: '#{r.to_s.inspect}'"}
-#      @@logger.debug(self.class) { "Result: '#{result.inspect}'"}
       doc.xpath('//error_description').each { |x| error << x.content unless x.content.nil? }
       doc.xpath('//pid').each { |x| pids << x.content unless x.content.nil? }
       doc.xpath('//mid').each { |x| mids << x.content unless x.content.nil? }
@@ -52,7 +48,6 @@ class SoapClient
       error << "SOAP Fault: " + response.soap_fault.to_s if response.soap_fault?
       error << "HTTP Error: " + response.http_error.to_s if response.http_error?
     end
-#    @@logger.debug(self.class) { "Result: error='#{error.inspect}', pids='#{pids.inspect}', mids='#{mids.inspect}', digital_entities='#{de.inspect}'"}
     { :error => error, :pids => pids, :mids => mids, :digital_entities => de, :result => doc.document}
   end
 

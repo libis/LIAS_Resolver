@@ -25,8 +25,9 @@ class DigitalEntityManager < SoapClient
     request :digital_entity_call, :general => general.to_s, :digital_entity_call => de_call2.to_s
   end
 
-  def retrieve_object( pid )
+  def retrieve_object( pid, extended = false )
     de_info = { 'pid' => pid }
+    de_info['sections'] = %w(extended_relation) if extended
     de_call = create_digital_entity_call de_info, 'retrieve'
     request :digital_entity_call, :general => general.to_s, :digital_entity_call => de_call.to_s
   end
@@ -95,6 +96,7 @@ class DigitalEntityManager < SoapClient
     #   'relation' => [ { 'cmd' => 'update', 'type' => 'manifestation', 'pid' => '12345' },
     #                   { 'cmd' => 'delete', 'type' => 'part_of', pid => '12345' } ],
     #   'stream_ref' => { 'file_name' => 'abc.tif', 'file_extension' => 'tif', ... }
+    #   'sections' => [ 'extended_relation', 'url' ]
     # }
     # update_options is something like this:
     # { 'metadata' => 'delta',
@@ -168,6 +170,10 @@ class DigitalEntityManager < SoapClient
       de_info['stream_ref'].each { |k,v| stream_ref << digital_entity_call.create_text_node(k.to_s, v.to_s) }
     end
     root << digital_entity_call.create_text_node('command', command)
+    if de_info['sections']
+      root << (sections = digital_entity_call.create_node('sections'))
+      de_info['sections'].each { |v| sections << digital_entity_call.create_text_node('section', v) }
+    end
     digital_entity_call.document
   end
 

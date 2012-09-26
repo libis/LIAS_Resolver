@@ -25,9 +25,17 @@
           %td
           %td the usage type(s) of the manifestations
         %tr
-          %td.parameter redirect
+          %td.parameter stream
+          %td
+          %td request the Resolver to redirect the client to the stream URL of the object found
+        %tr
+          %td.parameter view
           %td
           %td request the Resolver to redirect the client to the viewer URL of the object found
+        %tr
+          %td.parameter redirect
+          %td
+          %td request the Resolver to redirect the client to the stream/viewer URL of the object found
         %tr
           %td.parameter custom_att_3
           %td
@@ -56,10 +64,22 @@
           manifestations found will be returned in the order specified in this parameter.
 
     %p
-      The <code>redirect</code> parameter is optional. If present it instructs the Resolver to not return a result XML,
-      but to redirect the client to a viewer URL for the first object found. That means that if multiple usage types are
+      The <code>stream</code> parameter is optional. If present it instructs the Resolver to not return a result XML,
+      but to redirect the client to the stream URL for the first object found. That means that if multiple usage types are
       submitted in the <code>usagetype</code> parameter, it will redirect to viewing the first manifestation in that list
       found.
+
+    %p
+      The <code>view</code> parameter is optional. If present it instructs the Resolver to not return a result XML,
+      but to redirect the client to the viewer URL for the first object found. See above for explanation of 'first object found'.
+
+    %p
+      If both <code>stream</code> and <code>view</code> parameters are supplied, the <code>view</code> parameter takes
+      precedence. They both have priority over <code>redirect</code> and <code>custom_att_3</code>.
+
+    %p
+      The <code>redirect</code> parameter is optional. If present it instructs the Resolver to not return a result XML,
+      but to redirect the client to a viewer URL for the first object found. See above for explanation of 'first object found'.
 
     %p
       The <code>redirect</code> may also contain a value. This value will be used as the URL to redirect to and the PID of
@@ -69,6 +89,17 @@
       The <code>custom_att_3</code> parameter - if present - must contain the value '<code>stream</code>' to instruct the
       Resolver to redirect to the streaming URL instead of the viewer URL. This parameter only matters if the
       <code>redirect</code> parameter is present and empty.
+
+    %p
+      Note: the parameters <code>redirect</code> and <code>custom_att_3</code> are obsolete as they are specific to
+      DigiTool. You should use the <code>stream</code> and <code>view</code> parameters instead. Only if you need to
+      supply your own URL, the <code>redirect</code> parameter is still to be used.
+
+    %p
+      Note: the URL that the browser will be redirected to may be different, depending on the manifestation object. The
+      program will check if there are any accessrights attached to the object and if so, will redirect directly to the
+      repository URL for authentication. If the object is not protected, a proxy URL will be used that hides the
+      physical location from the browser.
 
     %h3 The result XML
 
@@ -80,4 +111,4 @@
         %li <code>target_usagetype</code>: the usage type(s) requested as per <code>usagetype</code> parameter.
     %p
       For each manifestation object found a <code>target_pid</code> sub-element is added with the manifestation's PID as
-      content.
+      content and an attribute <code>usagetype</code> for the usagetype of the manifestation.

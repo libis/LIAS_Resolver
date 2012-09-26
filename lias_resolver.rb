@@ -38,8 +38,6 @@ class LiasResolver < Sinatra::Base
     sort_text = params['sort']
     operator = params['operator']
 
-puts params[:operator]
-
     key ||= 'label'
     max = max.to_i | 20
     from = from.to_i
@@ -148,8 +146,11 @@ puts params[:operator]
     max = params['max_results']
     from = params['from']
 
-    max = max.to_i | 20
-    from = from.to_i | 0
+    max ||= 20
+    max = max.to_i
+
+    from ||= 0
+    from = from.to_i
 
     result = collect_child_pids pid, from, max
 
@@ -159,7 +160,7 @@ puts params[:operator]
     _next = from + pid_list.length
     _last = _next - 1
     _more = total - _next
-     
+
     headers 'Content-type' => 'text/xml', 'Charset' => 'utf-8'
 
     builder do |xml|
@@ -186,8 +187,8 @@ puts params[:operator]
           p = h['PID']
           label = h['LABEL']
 
-          t_url = "#{settings.this_url}/get_pid?redirect&usagetype=THUMBNAIL&pid=#{p.to_s}&custom_att_3=stream"
-          v_url = "#{settings.this_url}/get_pid?redirect&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
+          t_url = "#{settings.this_url}/get_pid?stream&usagetype=THUMBNAIL&pid=#{p.to_s}"
+          v_url = "#{settings.this_url}/get_pid?view&usagetype=VIEW_MAIN,VIEW&pid=#{p.to_s}"
 
           attributes = {
             'pid'   => "#{p.to_s}",
@@ -204,7 +205,6 @@ puts params[:operator]
 
     end # Builder
     
-
   end # get_children
 
   get '/get_pid' do
@@ -213,40 +213,51 @@ puts params[:operator]
     
     halt 400, 'Missing \'pid\' parameter' if pid.nil? or pid.empty?
 
-    viewer = params['redirect']
-    if viewer.nil? and params.has_key?('redirect')
-      if params.has_key?('custom_att_3') and params['custom_att_3'] == 'stream'
-        viewer = settings.strm_url
-      else
-        viewer = settings.view_url
-      end # if params.has_key?
-    end # if viewer.nil?
-
     usagetype = params['usagetype']
     usagetype = '' unless usagetype
+
+    ut = []
+    lookup_type = nil
+
     if usagetype.empty?
-      lookup_type = :excact
+      lookup_type = :exact
     elsif usagetype =~ /^ANY$/i
       lookup_type = :any
     elsif usagetype =~/^NULL$/i
       lookup_type = :null
+      ut = [nil, '']
     elsif usagetype.kind_of? String
-      usagetype = usagetype.split ','
       lookup_type = :array
+      ut = usagetype.split ','
     else
-      lookup_type = :error
+      halt 400, 'Bad usagetype parameter value'
     end # if usage_type
 
-    sql = make_sql lookup_type
-    pid_list = run_query sql, pid, usagetype
+    pid_list = get_manifestations pid, ut, lookup_type
 
-    if viewer.nil?
+    action = nil
+
+    if params.has_key?('redirect') and params['redirect'].nil?
+      if params.has_key?('custom_att_3') and params['custom_att_3'] == 'stream'
+        action = :stream
+      else
+        action = :view
+      end # if params.has_key?
+    end # if viewer.nil?
+
+    action = :stream if params.has_key?('stream')
+    action = :view if params.has_key?('view')
+
+    if action.nil?
       headers 'Content-type' => 'text/xml', 'Charset' => 'utf-8'
       builder do |xml|
         xml.instruct! :xml, version: '1.0', encoding: 'utf-8'
-        xml.result('source_pid' => pid, 'target_usagetype' => usagetype.join(',')) do
-          pid_list.each do |p|
-            xml.target_pid p.to_s
+        xml.result('source_pid' => pid, 'target_usagetype' => usagetype) do
+          pid_list.each do |usage_type, pids|
+            next unless pids
+            pids.each do |target_pid|
+              xml.target_pid({'usagetype' => usage_type}, target_pid.to_s)
+            end
           end # pid_list.each
         end # xml.result
       end # builder
@@ -255,21 +266,37 @@ puts params[:operator]
       extra_params = params
       extra_params.delete 'usagetype'
       extra_params.delete 'redirect'
+      extra_params.delete 'stream'
+      extra_params.delete 'view'
+      extra_params.delete 'custom_att_3'
 
       halt 400, 'Object not found. PID or manifestation does not exist.' unless pid_list.size > 0
 
-      extra_params['pid'] = pid_list.first
+      target_pid = pid_list.values.flatten.first
+      extra_params['pid'] = target_pid
+
+      viewer = params['redirect']
+      viewer = (has_accessrights?(target_pid) ? settings.direct_url : settings.proxy_url) if viewer.nil?
 
       viewer += "?"
       extra_params.each do |k, v|
         viewer += "#{k.to_s}=#{v.to_s}&"
       end # each extra_params
       viewer += "custom_att_2=simple_viewer"
+      viewer += "&custom_att_3=stream" if action == :stream
       redirect viewer
 
     end # unless
 
   end # get_pid
+
+  get '/get_object' do
+
+    pid = params['pid']
+
+    halt 400, 'Missing \'pid\' parameter' if pid.nil? or pid.empty?
+
+  end
 
   get '/get_mid' do
 
@@ -277,14 +304,14 @@ puts params[:operator]
 
     halt 400, 'Missing \'pid\' parameter' if pid.nil? or pid.empty?
 
-    result = DigitalEntityManager.instance.retrieve_object pid
+    mid_list = get_metadata_ids
 
     headers 'Content-type' => 'text/xml', 'Charset' => 'utf-8'
     builder { |xml|
       xml.instruct! :xml, version: '1.0', encoding: 'utf-8'
       xml.result(pid: pid) {
-        result[:result].xpath('//mds/md[name=\'descriptive\']').each { |md|
-          xml.metadata(mid: md.xpath('mid').first.content, type: md.xpath('type').first.content)
+        mid_list.each { |mid, md_type|
+          xml.metadata(mid: mid, type: md_type)
         } # each md
       } # xml.result
     } # builder

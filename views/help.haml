@@ -4,3 +4,15 @@
     The LIAS Resolver is a small web application that provides a RESTfull API to retrieve digital documents or information about them.
     A common usage for the API is to provide a persistent and unified URL for object access. Please click on a method name in the list
     on the left for more information.
+
+  %p
+    In general the syntax of the commands is:
+
+  %p
+    <code>http://&lt;Resolver_host_name&gt;/&lt;command&gt;[?&lt;parameter_name&gt;[=&lt;parameter_value&gt;][&amp;&lt;parameter_name&gt;[=&lt;parameter_value&gt;]...]</code>
+
+  %p
+    So after the host name of the resolver the command is added, separated with a slash ('/'). If parameters follow the
+    command they are separated from the command with a question mark ('?') and separated from each other with an
+    ampersant ('&amp;'). If a parameter takes a value, the parameter name and value are separated by an equal sign ('=').
+
