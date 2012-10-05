@@ -235,8 +235,6 @@ class LiasResolver < Sinatra::Base
 
     pid_list = get_manifestations pid, ut, lookup_type
 
-    puts "PID list: #{pid_list}"
-
     action = nil
 
     if params.has_key?('redirect') and params['redirect'].nil?
@@ -275,7 +273,6 @@ class LiasResolver < Sinatra::Base
       halt 400, 'Object not found. PID or manifestation does not exist.' unless pid_list.size > 0
 
       target_pid = pid_list.values.flatten.compact.first
-      puts "target_pid: #{target_pid}"
       extra_params['pid'] = target_pid
 
       viewer = params['redirect']
