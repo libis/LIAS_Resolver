@@ -278,12 +278,12 @@ class LiasResolver < Sinatra::Base
       viewer = params['redirect']
       viewer = (has_accessrights?(target_pid) ? settings.direct_url : settings.proxy_url) if viewer.nil?
 
-      viewer += "?"
+      viewer += '?'
       extra_params.each do |k, v|
         viewer += "#{k.to_s}=#{v.to_s}&"
       end # each extra_params
-      viewer += "custom_att_2=simple_viewer"
-      viewer += "&custom_att_3=stream" if action == :stream
+      viewer += 'custom_att_2=simple_viewer'
+      viewer += '&custom_att_3=stream' if action == :stream
       redirect viewer
 
     end # unless
