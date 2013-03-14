@@ -1,5 +1,7 @@
 require 'rvm/capistrano'
 require 'capistrano-deploytags'
+require 'bundler/capistrano'
+
 set :rvm_type, :local
 set :rvm_ruby_string, 'ruby@resolver'
 
@@ -54,7 +56,7 @@ end
 after  'deploy:setup', 'remote:create_dirs'
 
 before 'deploy:update_code', 'remote:fw_off'
-after  'deploy:update_code', 'remote:fw_on', 'bundler:install'
+after  'deploy:update_code', 'remote:fw_on'
 
 before 'deploy:update', 'remote:stop_server'
 after  'deploy:update', 'remote:create_symlinks', 'remote:start_server', 'deploy:cleanup'
