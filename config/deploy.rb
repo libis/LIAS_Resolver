@@ -54,7 +54,7 @@ end
 after  'deploy:setup', 'remote:create_dirs'
 
 before 'deploy:update_code', 'remote:fw_off'
-after  'deploy:update_code', 'remote:fw_on', 'bundle:install'
+after  'deploy:update_code', 'remote:fw_on', 'bundler:install'
 
 before 'deploy:update', 'remote:stop_server'
 after  'deploy:update', 'remote:create_symlinks', 'remote:start_server', 'deploy:cleanup'
