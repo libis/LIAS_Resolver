@@ -39,8 +39,8 @@ class LiasResolver < Sinatra::Base
     operator = params['operator']
 
     key ||= 'label'
-    max = max.to_i || 20
-    from = from.to_i
+    (max = max.to_i) > 0 || (max = 20)
+    (from = from.to_i) >= 0 || (from = 0)
 
     options = {}
 
