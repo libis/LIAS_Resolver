@@ -1,6 +1,6 @@
 require 'rvm/capistrano'
 require 'capistrano-deploytags'
-set :rvm_type, :system
+set :rvm_type, :local
 
 default_run_options[:pty] = true
 
