@@ -1,32 +1,32 @@
-require "rvm/capistrano"
+require 'rvm/capistrano'
 require 'capistrano-deploytags'
 set :rvm_type, :system
 
 default_run_options[:pty] = true
 
-set :application, "LIAS Resolver"
-set :repository,  "git@github.com:Kris-LIBIS/LIAS_Resolver.git"
+set :application, 'LIAS Resolver'
+set :repository, 'git@github.com:Kris-LIBIS/LIAS_Resolver.git'
 
 set :scm, :git
 set :branch, 'master'
 set :stage, 'production'
 
-set :deploy_to, "/opt/libis/LIAS_Resolver"
-set :user, "exlibris"
+set :deploy_to, '/opt/libis/LIAS_Resolver'
+set :user, 'lias'
 set :use_sudo, false
 
 set :keep_releases, 2
 
-server "resolver.lias.be", :app, :web, :db, :primary => true
+server 'libis-p-rosetta-3', :app, :web, :db, primary: true
 
 namespace :remote do
 
   task :fw_off do
-    run "sudo /etc/init.d/firewall stop"
+    run 'sudo /etc/init.d/firewall stop'
   end
 
   task :fw_on do
-    run "sudo /etc/init.d/firewall start"
+    run 'sudo /etc/init.d/firewall start'
   end
   
   task :create_dirs do
@@ -41,20 +41,20 @@ namespace :remote do
   end
 
   task :stop_server do
-    run "sudo /etc/init.d/thin stop"
+    run 'sudo /etc/init.d/lias_resolver stop'
   end
 
   task :start_server do
-    run "sudo /etc/init.d/thin start"
+    run 'sudo /etc/init.d/lias_resolver start'
   end
 
 end
 
-after  "deploy:setup" , "remote:create_dirs"
+after  'deploy:setup', 'remote:create_dirs'
 
-before "deploy:update_code", "remote:fw_off"
-after  "deploy:update_code", "remote:fw_on"
+before 'deploy:update_code', 'remote:fw_off'
+after  'deploy:update_code', 'remote:fw_on'
 
-before "deploy:update", "remote:stop_server"
-after  "deploy:update", "remote:create_symlinks", "remote:start_server", "deploy:cleanup"
+before 'deploy:update', 'remote:stop_server'
+after  'deploy:update', 'remote:create_symlinks', 'remote:start_server', 'deploy:cleanup'
 

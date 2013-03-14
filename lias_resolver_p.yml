@@ -1,0 +1,17 @@
+---
+chdir: /opt/libis/LIAS_Resolver/current
+environment: production
+address: 127.0.0.1
+port: 30000
+timeout: 30
+log: ./log/LIAS_Resolver.log
+pid: ./pid/LIAS_Resolver.pid
+max_conns: 1024
+max_persistent_conns: 512
+require: []
+wait: 30
+user: lias
+group: lias
+daemonize: true
+root: /opt/libis/LIAS_Resolver/current
+static: true
