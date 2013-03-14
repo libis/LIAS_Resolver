@@ -21,7 +21,7 @@ class SoapClient
   end
 
   def request(method, body)
-    response = @client.call(method, body)
+    response = @client.call(method, message: body)
     parse_result response
   end
 
