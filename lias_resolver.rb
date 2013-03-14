@@ -304,7 +304,7 @@ class LiasResolver < Sinatra::Base
 
     halt 400, 'Missing \'pid\' parameter' if pid.nil? or pid.empty?
 
-    mid_list = get_metadata_ids
+    mid_list = get_metadata_ids pid
 
     headers 'Content-type' => 'text/xml', 'Charset' => 'utf-8'
     builder { |xml|
