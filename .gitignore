@@ -21,3 +21,6 @@ lias_resolver.yml
 *.log
 *.pid
 .idea
+
+.ruby-gemset
+.ruby-version
